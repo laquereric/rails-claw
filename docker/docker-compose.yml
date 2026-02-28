@@ -1,0 +1,26 @@
+services:
+  rails-claw:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - workspaces:/data/workspaces
+      - db:/data/db
+    environment:
+      - RAILS_ENV=production
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE:-$(openssl rand -hex 64)}
+      - VV_PROVIDER_URL=${VV_PROVIDER_URL:-http://host.docker.internal:8321}
+      - PICOCLAW_BINARY_PATH=/rails/bin/picoclaw
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/up"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  workspaces:
+  db:

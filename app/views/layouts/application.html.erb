@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html class="h-full bg-gray-50">
+  <head>
+    <title><%= content_for(:title) || "Rails-Claw" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="application-name" content="Rails-Claw">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= yield :head %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="h-full">
+    <div class="min-h-full">
+      <%= render "shared/navbar" %>
+
+      <% if notice.present? || alert.present? %>
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-4">
+          <% if notice.present? %>
+            <div class="rounded-md bg-green-50 p-4 mb-2">
+              <p class="text-sm text-green-700"><%= notice %></p>
+            </div>
+          <% end %>
+          <% if alert.present? %>
+            <div class="rounded-md bg-red-50 p-4 mb-2">
+              <p class="text-sm text-red-700"><%= alert %></p>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <%= yield %>
+      </main>
+    </div>
+  </body>
+</html>

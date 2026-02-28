@@ -1,0 +1,32 @@
+<% content_for(:title) { "Conversations - #{@workspace.name}" } %>
+
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Conversations</h1>
+      <p class="text-sm text-gray-500">Workspace: <%= @workspace.name %></p>
+    </div>
+    <%= link_to "Back", @workspace, class: "inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" %>
+  </div>
+
+  <% if @conversations.any? %>
+    <div class="bg-white shadow rounded-lg divide-y divide-gray-200">
+      <% @conversations.each do |conv| %>
+        <%= link_to workspace_conversation_path(@workspace, conv), class: "block p-4 hover:bg-gray-50" do %>
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="text-sm font-medium text-gray-900"><%= conv.agent.name %></span>
+              <span class="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800"><%= conv.platform %></span>
+              <span class="ml-2 text-xs text-gray-500"><%= conv.message_count %> messages</span>
+            </div>
+            <span class="text-sm text-gray-500"><%= time_ago_in_words(conv.updated_at) %> ago</span>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-12 bg-white rounded-lg shadow">
+      <p class="text-gray-500">No conversations yet.</p>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,11 @@
+class CreateConversations < ActiveRecord::Migration[8.1]
+  def change
+    create_table :conversations do |t|
+      t.references :agent, null: false, foreign_key: true
+      t.string :platform
+      t.string :external_id
+
+      t.timestamps
+    end
+  end
+end

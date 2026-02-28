@@ -1,0 +1,16 @@
+{
+  "icon": "icon.svg",
+  "ui": {
+    "dashboard-tab": {
+      "title": "Rails-Claw",
+      "root": "/",
+      "src": "http://localhost:3000"
+    }
+  },
+  "vm": {
+    "composefile": "docker-compose.yml"
+  },
+  "host": {
+    "binaries": []
+  }
+}

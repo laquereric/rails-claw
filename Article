@@ -1,0 +1,145 @@
+Ok OpenClaw But I’m Siding With The PicoClaw Future
+OpenClaw TypeScript to Go Refactor That Slashed Memory Usage by 99% and Opened New Possibilities
+Minervee
+Minervee
+
+Follow
+6 min read
+·
+Feb 18, 2026
+267
+
+
+3
+
+
+
+
+
+OpenClaw quickly became one of the fastest-growing open-source projects on GitHub soon after its release. It turned any chat app into a gateway for a fully autonomous AI assistant that could read emails, schedule tasks, browse the web, run shell commands, and persist memory across sessions, all while living on your local machine.
+
+But it was built in TypeScript and Node.js. This meant deployments on a full Mac Mini or a beefy Linux server with at least 1 GB of RAM dedicated to the runtime. So, a team of Chinese engineers at Sipeed reverse-engineered the architecture, and rebuilt everything from scratch in Go. The result is PicoClaw, a single static binary that uses less than 10 MB of RAM, starts in under one second even on a 0.6 GHz single-core board.
+
+Let’s talk PicoClaw, how to set it up and leverage it’s true potential.
+
+Why the Original OpenClaw Needed a Rewrite
+OpenClaw’s strength lies in its rich ecosystem. It supports dozens of messaging newsletters (WhatsApp, Telegram, Slack, Discord, iMessage via BlueBubbles, and more), a visual Live Canvas, voice wake-up, and a growing marketplace of skills stored as markdown files with clear SKILL.md definitions. The gateway acts as a control plane, routing messages, managing sessions, and injecting persistent context files like SOUL.md, AGENTS.md, and MEMORY.md into every LLM prompt.
+
+But that richness comes with overhead. Node.js brings a full JavaScript runtime, event loop, and module system. Even with tree-shaking and careful bundling, the process footprint easily exceeds 1 GB when handling browser automation, long contexts, and multiple concurrent skills.
+
+Press enter or click to view image in full size
+
+PicoClaw keeps the soul of the system, the markdown-based workspace, cron scheduler, long-term memory, tool-calling loop, and chat integrations, but strips away everything that is not essential. The entire application compiles to a single native binary with zero external runtime dependencies beyond the OS.
+
+Advantages of PicoClaw
+The numbers speak for themselves:
+
+Memory: OpenClaw >1 GB typical, PicoClaw <10 MB idle.
+Startup: OpenClaw often 30–500+ seconds on low-end hardware (including Node warm-up and dependency loading), PicoClaw consistently under 1 second.
+Binary size: PicoClaw ships as a single ~15–25 MB executable depending on platform. No Node installation, no npm packages.
+Hardware: Runs on anything with a Linux kernel and ~64 MB free RAM. Deployments include $9.90 LicheeRV-Nano (RISC-V), Raspberry Pi Zero 2 W, old Android phones via Termux chroot, and even embedded industrial boards.
+Cross-compilation: One make build-all produces binaries for x86_64, ARM64, and RISC-V out of the box.
+From a Go perspective, the advantages come directly from the language’s design: static linking, garbage collector tuned for low latency and low footprint, excellent concurrency primitives without the overhead of a virtual machine, and dead-simple cross-compilation. The HTTP client for LLM calls, JSON unmarshaling for tool responses, and file-system watcher for cron and memory updates are all in the standard library or tiny well-audited packages.
+
+Step-by-Step Setup: Running Agent in Under Ten Minutes
+You have three main paths. I recommend starting with the precompiled binary for speed, then moving to source for development.
+
+Option 1: Precompiled binary (easiest)
+Download the correct binary from the releases page (picoclaw-linux-arm64 for Raspberry Pi, picoclaw-linux-amd64 for most servers, etc.). Make it executable and place it in your PATH:
+
+wget https://github.com/sipeed/picoclaw/releases/download/v0.1.1/picoclaw-linux-arm64
+chmod +x picoclaw-linux-arm64
+sudo mv picoclaw-linux-arm64 /usr/local/bin/picoclaw
+Option 2: From source (for contributors and custom builds)
+git clone https://github.com/sipeed/picoclaw.git
+cd picoclaw
+make deps          # installs build tools if needed
+make build         # produces ./picoclaw
+sudo make install  # installs to /usr/local/bin
+Option 3: Docker (zero host pollution)
+The repo includes a ready docker-compose.yml with gateway and agent profiles.
+
+Onboarding and first run
+
+picoclaw onboard
+This creates ~/.picoclaw/config.json and the workspace directory. Edit the config to add your LLM provider keys. OpenRouter is the most flexible starting point because it gives access to dozens of models through one endpoint.
+
+Example minimal config snippet:
+
+{
+  "agents": {
+    "defaults": {
+      "workspace": "~/.picoclaw/workspace",
+      "model": "glm-4.7",
+      "temperature": 0.7
+    }
+  },
+  "providers": {
+    "openrouter": {
+      "api_key": "your_key_here",
+      "api_base": "https://openrouter.ai/api/v1"
+    }
+  },
+  "tools": {
+    "web": {
+      "duckduckgo": { "enabled": true }
+    }
+  }
+}
+Test it immediately:
+
+picoclaw agent -m "Summarize the last 24 hours of my calendar and suggest three priorities for today"
+Adding a chat interface (Telegram example)
+
+Create a bot with @BotFather, copy the token, then add to config:
+
+"channels": {
+  "telegram": {
+    "enabled": true,
+    "token": "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11",
+    "allowFrom": ["your_user_id"]
+  }
+}
+Run picoclaw gateway and you are live. The same pattern works for Discord, QQ, DingTalk, and LINE with only minor credential differences.
+
+Inside the Workspace: Markdown-Driven Architecture
+Everything that makes the agent persistent lives in plain text files:
+
+SOUL.md, high-level identity and values
+AGENTS.md, behavior rules and chain-of-thought guidelines
+MEMORY.md, long-term vector-free memory (the agent summarizes and appends)
+HEARTBEAT.md, prompt evaluated every 30 minutes for proactive tasks
+cron/ directory, JSON files defining scheduled jobs
+skills/, drop in new SKILL.md files and the agent discovers them
+This design is brilliant for developers. You can version-control the entire agent personality, audit changes with git, and even have the agent edit its own configuration files safely within the sandbox.
+
+The security model restricts all file and command operations to the workspace unless you explicitly disable the flag. Tools like browser automation or shell execution run through carefully scoped wrappers.
+
+Deploying This Edge on Hardware
+On a Raspberry Pi Zero 2 W (around $15 with case and power supply), you can run a full personal assistant that checks your email via IMAP, searches the web, and posts daily summaries to Telegram, all while just sipping on power and leaving the Pi free for other services like Pi-hole or Home Assistant.
+
+On Sipeed’s LicheeRV-Nano (RISC-V, ~$10), it becomes a completely silent, fanless node that can monitor a room with a camera module and alert you only when something interesting happens.
+
+Old Android phones work too: install Termux, enable chroot, drop the arm64 binary, and you have turned e-waste into a dedicated AI companion.
+
+For production edge use, combine PicoClaw with a simple systemd service that restarts on failure and logs to journald. The binary's tiny footprint means you can run dozens of isolated agents on a single modest board if you namespace the workspaces.
+
+Development Lessons Worth Stealing
+Let the AI own the boring migration work. Spend your human cycles on architecture decisions and edge cases, not line-by-line translation.
+Measure memory and startup obsessively. Go’s runtime.ReadMemStats() and simple time benchmarks should be in every CI step when targeting constrained environments.
+Favor stdlib and minimal dependencies. Every external package adds binary size and potential attack surface. PicoClaw proves you can build a sophisticated agent with surprisingly little.
+Markdown as the universal interface. By keeping state, prompts, memory, and skills in plain text, you get git, diff, search, and human readability for free. This pattern scales far beyond AI agents.
+Sandbox early and often. The default restrict-to-workspace flag prevented countless potential disasters during development.
+You can apply these same principles to your own projects. Next time you have a Node or Python service that feels bloated, try the AI-assisted Go port exercise as a weekend experiment. I kid you not, the confidence boost when your binary drops from 200 MB to 12 MB can be addictive.
+
+Trade-offs and the Road Ahead
+PicoClaw is younger, so the skill marketplace is not yet as rich as OpenClaw’s ClawHub. Some advanced OpenClaw features like the full visual Canvas and native mobile companion apps are still missing. Plugin compatibility is reduced because the tool interface, while similar, is not identical.
+
+These gaps are closing fast. The project already has community PRs adding local Ollama support, more LLM providers, and migration helpers for OpenClaw workspaces. Given the momentum (12k stars in the first week), the ecosystem will catch up quickly.
+
+For developers who need the absolute richest feature set today, OpenClaw on a Mac Mini or small VPS is still excellent. For everything else, especially anything that must run 24/7 on cheap or embedded hardware, PicoClaw is the clear winner.
+
+The Bigger Picture for Developers
+PicoClaw proves that extreme efficiency and powerful AI capabilities are not mutually exclusive. By choosing the right language and letting modern coding assistants handle the heavy lifting of refactoring, we can push autonomous agents into places they never reached before: battery-powered devices, industrial controllers, old phones, and even micro-servers in remote locations.
+
+Many of the next wave of interesting AI applications will run quietly in the background on hardware we already own or can buy for pocket change. Tools like PicoClaw give developers the ability to participate in that wave without waiting for bigger, more expensive silicon.

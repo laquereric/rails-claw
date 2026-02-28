@@ -1,0 +1,38 @@
+#!/bin/bash
+set -e
+
+echo "=== Rails-Claw Backup ==="
+
+BACKUP_DIR=${BACKUP_DIR:-"./backups"}
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BACKUP_NAME="rails-claw-backup-$TIMESTAMP"
+BACKUP_PATH="$BACKUP_DIR/$BACKUP_NAME.tar.gz"
+
+mkdir -p "$BACKUP_DIR"
+
+# Determine paths
+DB_PATH=${DATABASE_PATH:-"storage/production.sqlite3"}
+WORKSPACE_PATH=${WORKSPACE_STORAGE:-"storage/workspaces"}
+
+echo "Backing up database and workspaces..."
+
+# Create backup archive
+tar -czf "$BACKUP_PATH" \
+  --exclude='*.log' \
+  -C "$(dirname "$DB_PATH")" "$(basename "$DB_PATH")" 2>/dev/null || true
+
+# Add workspaces if they exist
+if [ -d "$WORKSPACE_PATH" ]; then
+  tar -rzf "$BACKUP_PATH" -C "$(dirname "$WORKSPACE_PATH")" "$(basename "$WORKSPACE_PATH")"
+fi
+
+echo "Backup created: $BACKUP_PATH ($(du -h "$BACKUP_PATH" | cut -f1))"
+
+# Upload to S3 if configured
+if [ -n "$S3_BUCKET" ]; then
+  echo "Uploading to s3://$S3_BUCKET/backups/..."
+  aws s3 cp "$BACKUP_PATH" "s3://$S3_BUCKET/backups/$BACKUP_NAME.tar.gz"
+  echo "Uploaded to S3."
+fi
+
+echo "=== Backup complete ==="

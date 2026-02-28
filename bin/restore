@@ -1,0 +1,52 @@
+#!/bin/bash
+set -e
+
+echo "=== Rails-Claw Restore ==="
+
+BACKUP_PATH=$1
+
+if [ -z "$BACKUP_PATH" ]; then
+  echo "Usage: bin/restore <backup-file.tar.gz>"
+  echo ""
+  echo "Local backups:"
+  ls -la backups/ 2>/dev/null || echo "  No local backups found."
+  exit 1
+fi
+
+# Download from S3 if it's an S3 path
+if [[ "$BACKUP_PATH" == s3://* ]]; then
+  LOCAL_PATH="/tmp/$(basename "$BACKUP_PATH")"
+  echo "Downloading from S3..."
+  aws s3 cp "$BACKUP_PATH" "$LOCAL_PATH"
+  BACKUP_PATH="$LOCAL_PATH"
+fi
+
+if [ ! -f "$BACKUP_PATH" ]; then
+  echo "ERROR: Backup file not found: $BACKUP_PATH"
+  exit 1
+fi
+
+echo "Restoring from: $BACKUP_PATH"
+echo "WARNING: This will overwrite existing data."
+read -p "Continue? (y/N) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  echo "Aborted."
+  exit 0
+fi
+
+# Stop the app if running
+systemctl stop rails-claw 2>/dev/null || true
+
+# Extract backup
+echo "Extracting backup..."
+tar -xzf "$BACKUP_PATH" -C storage/
+
+# Run migrations in case of schema changes
+echo "Running migrations..."
+RAILS_ENV=production bin/rails db:migrate 2>/dev/null || true
+
+# Restart
+systemctl start rails-claw 2>/dev/null || true
+
+echo "=== Restore complete ==="

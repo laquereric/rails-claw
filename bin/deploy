@@ -1,0 +1,95 @@
+#!/bin/bash
+set -e
+
+echo "=== Rails-Claw VPS Deploy ==="
+
+# Check we're on a Debian/Ubuntu system
+if ! command -v apt-get &> /dev/null; then
+  echo "ERROR: This script requires apt-get (Debian/Ubuntu)"
+  exit 1
+fi
+
+APP_DIR="/opt/rails-claw"
+APP_USER="rails-claw"
+
+# Install dependencies
+echo "[1/6] Installing system dependencies..."
+apt-get update -qq
+apt-get install -y ruby ruby-dev build-essential libsqlite3-dev git nginx certbot python3-certbot-nginx curl
+
+# Create app user
+echo "[2/6] Creating app user..."
+id -u $APP_USER &>/dev/null || useradd --system --create-home --shell /bin/bash $APP_USER
+
+# Clone/update app
+echo "[3/6] Setting up application..."
+if [ -d "$APP_DIR" ]; then
+  cd $APP_DIR && git pull
+else
+  git clone "$(pwd)" $APP_DIR
+fi
+cd $APP_DIR
+chown -R $APP_USER:$APP_USER $APP_DIR
+
+# Install gems
+echo "[4/6] Installing gems..."
+su - $APP_USER -c "cd $APP_DIR && bundle install --deployment --without development test"
+
+# Setup database
+echo "[5/6] Setting up database..."
+su - $APP_USER -c "cd $APP_DIR && RAILS_ENV=production bin/rails db:migrate"
+
+# Create systemd service
+echo "[6/6] Setting up systemd service..."
+cat > /etc/systemd/system/rails-claw.service << EOF
+[Unit]
+Description=Rails-Claw
+After=network.target
+
+[Service]
+Type=simple
+User=$APP_USER
+WorkingDirectory=$APP_DIR
+Environment=RAILS_ENV=production
+Environment=RAILS_LOG_TO_STDOUT=true
+Environment=RAILS_SERVE_STATIC_FILES=true
+ExecStart=$APP_DIR/bin/rails server -b 127.0.0.1 -p 3000
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable rails-claw
+systemctl restart rails-claw
+
+# Setup nginx
+DOMAIN=${1:-"localhost"}
+cat > /etc/nginx/sites-available/rails-claw << EOF
+server {
+    listen 80;
+    server_name $DOMAIN;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+}
+EOF
+
+ln -sf /etc/nginx/sites-available/rails-claw /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx
+
+if [ "$DOMAIN" != "localhost" ]; then
+  echo "Setting up SSL with Let's Encrypt..."
+  certbot --nginx -d $DOMAIN --non-interactive --agree-tos --email admin@$DOMAIN || true
+fi
+
+echo ""
+echo "=== Deploy complete ==="
+echo "App running at http://$DOMAIN"

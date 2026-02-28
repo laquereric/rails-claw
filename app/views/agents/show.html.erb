@@ -1,0 +1,50 @@
+<% content_for(:title) { "#{@agent.name} - Rails-Claw" } %>
+
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900"><%= @agent.name %></h1>
+      <p class="text-sm text-gray-500">Workspace: <%= @workspace.name %></p>
+    </div>
+    <div class="flex gap-2">
+      <%= link_to "Edit", edit_workspace_agent_path(@workspace, @agent), class: "inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" %>
+      <%= link_to "Back", workspace_agents_path(@workspace), class: "inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Details</h2>
+      <dl class="space-y-3">
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Status</dt>
+          <dd class="mt-1"><span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= @agent.running? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>"><%= @agent.status %></span></dd>
+        </div>
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Conversations</dt>
+          <dd class="mt-1 text-sm text-gray-900"><%= @agent.conversations.count %></dd>
+        </div>
+        <div>
+          <dt class="text-sm font-medium text-gray-500">Total Messages</dt>
+          <dd class="mt-1 text-sm text-gray-900"><%= @agent.messages.count %></dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-6">
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Recent Conversations</h2>
+      <% if @conversations.any? %>
+        <div class="divide-y divide-gray-200">
+          <% @conversations.limit(5).each do |conv| %>
+            <div class="py-2 flex justify-between">
+              <span class="text-sm text-gray-900"><%= conv.platform %></span>
+              <span class="text-xs text-gray-500"><%= time_ago_in_words(conv.updated_at) %> ago</span>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-sm text-gray-500">No conversations yet.</p>
+      <% end %>
+    </div>
+  </div>
+</div>

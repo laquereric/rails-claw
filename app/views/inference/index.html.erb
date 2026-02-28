@@ -1,0 +1,77 @@
+<% content_for(:title) { "Inference Playground - Rails-Claw" } %>
+
+<div class="space-y-6">
+  <h1 class="text-2xl font-bold text-gray-900">Inference Playground</h1>
+
+  <% unless @vv_provider[:connected] %>
+    <!-- Disconnected: full-page gated state -->
+    <div class="bg-white shadow rounded-lg p-8 text-center">
+      <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+        <span class="inline-block h-4 w-4 rounded-full bg-red-400"></span>
+      </div>
+      <h2 class="mt-4 text-lg font-semibold text-gray-900">Inference Requires the VV Provider</h2>
+      <p class="mt-2 text-sm text-gray-600">
+        The VV local provider is not reachable. Install the VV Chrome extension to get started.
+      </p>
+      <% if @vv_provider[:error] %>
+        <p class="mt-1 text-xs text-gray-500"><%= @vv_provider[:error] %></p>
+      <% end %>
+      <div class="mt-6 flex justify-center gap-4">
+        <a href="https://chromewebstore.google.com/detail/vv-chrome-extension" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+          Install VV Extension
+        </a>
+        <%= link_to "Check Again", inference_path, class: "inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" %>
+      </div>
+    </div>
+  <% else %>
+    <!-- Connected: show chat UI -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6" data-controller="chat">
+      <!-- Settings Panel -->
+      <div class="bg-white shadow rounded-lg p-4">
+        <h2 class="text-sm font-medium text-gray-900 mb-4">Settings</h2>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Model</label>
+            <select data-chat-target="model" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+              <% if @models.present? %>
+                <% @models.each do |model| %>
+                  <option value="<%= model["id"] %>"><%= model["id"] %></option>
+                <% end %>
+              <% else %>
+                <option value="" disabled>No models available</option>
+              <% end %>
+            </select>
+          </div>
+
+          <div class="rounded-md bg-green-50 p-3">
+            <div class="flex items-center">
+              <span class="inline-block h-2 w-2 rounded-full bg-green-400 mr-2"></span>
+              <p class="text-xs text-green-700">VV Provider connected &mdash; <%= @models&.size || 0 %> model<%= @models&.size == 1 ? "" : "s" %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Area -->
+      <div class="lg:col-span-3 bg-white shadow rounded-lg flex flex-col" style="height: 600px;">
+        <!-- Messages -->
+        <div data-chat-target="messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+          <p class="text-sm text-gray-400 text-center">Send a message to begin.</p>
+        </div>
+
+        <!-- Input -->
+        <div class="border-t border-gray-200 p-4">
+          <form data-action="submit->chat#send" class="flex gap-2">
+            <input type="text" data-chat-target="input" placeholder="Type a message..."
+              class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            <button type="submit" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+              Send
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>
