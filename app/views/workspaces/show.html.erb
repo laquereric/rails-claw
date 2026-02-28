@@ -10,7 +10,6 @@
         <%= render ButtonComponent.new(label: "Start", path: start_workspace_path(@workspace), variant: :success, method: :post) %>
       <% end %>
       <%= render ButtonComponent.new(label: "Edit", path: edit_workspace_path(@workspace), variant: :secondary) %>
-      <%= render ButtonComponent.new(label: "Agents", path: workspace_agents_path(@workspace), variant: :secondary) %>
       <%= render ButtonComponent.new(label: "Conversations", path: workspace_conversations_path(@workspace), variant: :secondary) %>
     <% end %>
   <% end %>
@@ -56,5 +55,33 @@
         </div>
       <% end %>
     </div>
+  </div>
+
+  <!-- Agents -->
+  <div class="bg-white shadow rounded-lg p-6">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-medium text-gray-900">Agents</h2>
+      <%= render ButtonComponent.new(label: "New Agent", path: new_workspace_agent_path(@workspace), variant: :primary) %>
+    </div>
+
+    <% if @agents.any? %>
+      <div class="divide-y divide-gray-200">
+        <% @agents.each do |agent| %>
+          <div class="flex items-center justify-between py-3">
+            <div class="flex items-center gap-3">
+              <%= link_to agent.name, workspace_agent_path(@workspace, agent), class: "text-sm font-medium text-indigo-600 hover:text-indigo-500" %>
+              <%= render StatusBadgeComponent.new(status: agent.status) %>
+            </div>
+            <span class="text-sm text-gray-500"><%= agent.conversations.count %> conversations</span>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <%= render EmptyStateComponent.new(
+        message: "No agents yet.",
+        action_text: "Create your first agent",
+        action_path: new_workspace_agent_path(@workspace)
+      ) %>
+    <% end %>
   </div>
 </div>

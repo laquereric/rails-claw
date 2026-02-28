@@ -3,6 +3,19 @@
     <h3 class="text-lg font-medium text-gray-900"><%= @workspace.name %></h3>
     <%= render StatusBadgeComponent.new(status: @workspace.status) %>
   </div>
-  <p class="mt-2 text-sm text-gray-500"><%= @workspace.agents.count %> agents</p>
+  <p class="mt-2 text-sm text-gray-500"><%= agents.size %> agents</p>
+  <% if visible_agents.any? %>
+    <div class="mt-1 space-y-0.5">
+      <% visible_agents.each do |agent| %>
+        <div class="flex items-center gap-1.5">
+          <span class="inline-block h-2 w-2 rounded-full <%= dot_color(agent.status) %>"></span>
+          <span class="text-xs text-gray-600 truncate"><%= agent.name %></span>
+        </div>
+      <% end %>
+      <% if remaining_count > 0 %>
+        <p class="text-xs text-gray-400 pl-3.5">+<%= remaining_count %> more</p>
+      <% end %>
+    </div>
+  <% end %>
   <p class="mt-1 text-xs text-gray-400">Created <%= time_ago_in_words(@workspace.created_at) %> ago</p>
 <% end %>

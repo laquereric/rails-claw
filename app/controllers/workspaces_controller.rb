@@ -10,6 +10,7 @@ class WorkspacesController < ApplicationController
     @files = @manager.list_files
     @current_file = params[:file] || "SOUL.md"
     @file_content = @manager.read_file(@current_file)
+    @agents = @workspace.agents.order(:name)
   end
 
   def new
