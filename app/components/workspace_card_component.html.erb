@@ -1,0 +1,8 @@
+<%= link_to workspace_path(@workspace), class: "block bg-white shadow rounded-lg p-6 hover:shadow-md transition-shadow" do %>
+  <div class="flex justify-between items-start">
+    <h3 class="text-lg font-medium text-gray-900"><%= @workspace.name %></h3>
+    <%= render StatusBadgeComponent.new(status: @workspace.status) %>
+  </div>
+  <p class="mt-2 text-sm text-gray-500"><%= @workspace.agents.count %> agents</p>
+  <p class="mt-1 text-xs text-gray-400">Created <%= time_ago_in_words(@workspace.created_at) %> ago</p>
+<% end %>

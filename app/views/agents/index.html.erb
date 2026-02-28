@@ -1,16 +1,12 @@
 <% content_for(:title) { "Agents - #{@workspace.name}" } %>
 
 <div class="space-y-6">
-  <div class="flex justify-between items-center">
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900">Agents</h1>
-      <p class="text-sm text-gray-500">Workspace: <%= @workspace.name %></p>
-    </div>
-    <div class="flex gap-2">
-      <%= link_to "New Agent", new_workspace_agent_path(@workspace), class: "inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500" %>
-      <%= link_to "Back", @workspace, class: "inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" %>
-    </div>
-  </div>
+  <%= render PageHeaderComponent.new(title: "Agents", subtitle: "Workspace: #{@workspace.name}") do |header| %>
+    <% header.with_actions do %>
+      <%= render ButtonComponent.new(label: "New Agent", path: new_workspace_agent_path(@workspace)) %>
+      <%= render ButtonComponent.new(label: "Back", path: workspace_path(@workspace), variant: :secondary) %>
+    <% end %>
+  <% end %>
 
   <% if @agents.any? %>
     <div class="bg-white shadow rounded-lg divide-y divide-gray-200">
@@ -18,17 +14,13 @@
         <div class="p-4 flex justify-between items-center">
           <div>
             <%= link_to agent.name, workspace_agent_path(@workspace, agent), class: "text-sm font-medium text-indigo-600 hover:text-indigo-500" %>
-            <span class="ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium <%= agent.running? ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' %>">
-              <%= agent.status %>
-            </span>
+            <%= render StatusBadgeComponent.new(status: agent.status) %>
             <p class="text-xs text-gray-500 mt-1"><%= agent.conversations.count %> conversations</p>
           </div>
         </div>
       <% end %>
     </div>
   <% else %>
-    <div class="text-center py-12 bg-white rounded-lg shadow">
-      <p class="text-gray-500">No agents yet.</p>
-    </div>
+    <%= render EmptyStateComponent.new(message: "No agents yet.") %>
   <% end %>
 </div>

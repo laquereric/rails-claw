@@ -3,23 +3,12 @@
 <div class="space-y-8">
   <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
 
-  <!-- VV Provider Status Banner -->
-  <%= render "shared/vv_provider_status" %>
+  <%= render VvProviderStatusComponent.new(provider: @vv_provider) %>
 
-  <!-- Stats Grid -->
   <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-      <dt class="truncate text-sm font-medium text-gray-500">Total Workspaces</dt>
-      <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"><%= @workspaces.count %></dd>
-    </div>
-    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-      <dt class="truncate text-sm font-medium text-gray-500">Running Workspaces</dt>
-      <dd class="mt-1 text-3xl font-semibold tracking-tight text-green-600"><%= @running_workspaces.count %></dd>
-    </div>
-    <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-      <dt class="truncate text-sm font-medium text-gray-500">Running Agents</dt>
-      <dd class="mt-1 text-3xl font-semibold tracking-tight text-blue-600"><%= @running_agents.count %></dd>
-    </div>
+    <%= render StatCardComponent.new(label: "Total Workspaces", value: @workspaces.count) %>
+    <%= render StatCardComponent.new(label: "Running Workspaces", value: @running_workspaces.count, color: :green) %>
+    <%= render StatCardComponent.new(label: "Running Agents", value: @running_agents.count, color: :blue) %>
     <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
       <dt class="truncate text-sm font-medium text-gray-500">VV Provider</dt>
       <dd class="mt-1 text-lg font-semibold tracking-tight <%= @vv_provider[:connected] ? 'text-green-600' : 'text-red-600' %>">
@@ -32,32 +21,22 @@
     </div>
   </div>
 
-  <!-- Quick Actions -->
-  <div class="bg-white shadow rounded-lg p-6">
-    <h2 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
+  <%= render CardComponent.new(title: "Quick Actions") do %>
     <div class="flex gap-4">
-      <%= link_to "New Workspace", new_workspace_path, class: "inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500" %>
-      <%= link_to "Inference Playground", inference_path, class: "inline-flex items-center rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500" %>
+      <%= render ButtonComponent.new(label: "New Workspace", path: new_workspace_path) %>
+      <%= render ButtonComponent.new(label: "Inference Playground", path: inference_path, variant: :dark) %>
     </div>
-  </div>
+  <% end %>
 
-  <!-- Recent Conversations -->
-  <div class="bg-white shadow rounded-lg p-6">
-    <h2 class="text-lg font-medium text-gray-900 mb-4">Recent Conversations</h2>
+  <%= render CardComponent.new(title: "Recent Conversations") do %>
     <% if @recent_conversations.any? %>
       <div class="divide-y divide-gray-200">
         <% @recent_conversations.each do |conv| %>
-          <div class="py-3 flex justify-between items-center">
-            <div>
-              <span class="text-sm font-medium text-gray-900"><%= conv.agent.name %></span>
-              <span class="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800"><%= conv.platform %></span>
-            </div>
-            <span class="text-sm text-gray-500"><%= time_ago_in_words(conv.updated_at) %> ago</span>
-          </div>
+          <%= render ConversationRowComponent.new(conversation: conv) %>
         <% end %>
       </div>
     <% else %>
       <p class="text-sm text-gray-500">No conversations yet.</p>
     <% end %>
-  </div>
+  <% end %>
 </div>

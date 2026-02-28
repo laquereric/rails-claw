@@ -1,37 +1,28 @@
 <% content_for(:title) { "#{@workspace.name} - Rails-Claw" } %>
 
 <div class="space-y-6">
-  <!-- Header -->
-  <div class="flex justify-between items-center">
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900"><%= @workspace.name %></h1>
-      <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-        <%= case @workspace.status
-            when 'running' then 'bg-green-100 text-green-800'
-            when 'stopped' then 'bg-gray-100 text-gray-800'
-            when 'error' then 'bg-red-100 text-red-800'
-            else 'bg-gray-100 text-gray-800'
-            end %>">
-        <%= @workspace.status %>
-        <% if @workspace.picoclaw_pid %> (PID: <%= @workspace.picoclaw_pid %>)<% end %>
-      </span>
-    </div>
-    <div class="flex gap-2">
+  <%= render PageHeaderComponent.new(title: @workspace.name) do |header| %>
+    <% header.with_actions do %>
       <% if @workspace.running? %>
-        <%= button_to "Stop", stop_workspace_path(@workspace), method: :post, class: "inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500" %>
-        <%= button_to "Restart", restart_workspace_path(@workspace), method: :post, class: "inline-flex items-center rounded-md bg-yellow-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500" %>
+        <%= render ButtonComponent.new(label: "Stop", path: stop_workspace_path(@workspace), variant: :danger, method: :post) %>
+        <%= render ButtonComponent.new(label: "Restart", path: restart_workspace_path(@workspace), variant: :warning, method: :post) %>
       <% else %>
-        <%= button_to "Start", start_workspace_path(@workspace), method: :post, class: "inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500" %>
+        <%= render ButtonComponent.new(label: "Start", path: start_workspace_path(@workspace), variant: :success, method: :post) %>
       <% end %>
-      <%= link_to "Edit", edit_workspace_path(@workspace), class: "inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" %>
-      <%= link_to "Agents", workspace_agents_path(@workspace), class: "inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" %>
-      <%= link_to "Conversations", workspace_conversations_path(@workspace), class: "inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" %>
-    </div>
+      <%= render ButtonComponent.new(label: "Edit", path: edit_workspace_path(@workspace), variant: :secondary) %>
+      <%= render ButtonComponent.new(label: "Agents", path: workspace_agents_path(@workspace), variant: :secondary) %>
+      <%= render ButtonComponent.new(label: "Conversations", path: workspace_conversations_path(@workspace), variant: :secondary) %>
+    <% end %>
+  <% end %>
+
+  <div class="mt-1">
+    <%= render StatusBadgeComponent.new(status: @workspace.status) do %>
+      <% if @workspace.picoclaw_pid %> (PID: <%= @workspace.picoclaw_pid %>)<% end %>
+    <% end %>
   </div>
 
   <!-- File Editor -->
   <div class="bg-white shadow rounded-lg overflow-hidden">
-    <!-- Tab bar -->
     <div class="border-b border-gray-200">
       <nav class="flex -mb-px" aria-label="Tabs">
         <% %w[SOUL.md AGENTS.md MEMORY.md HEARTBEAT.md].each do |filename| %>
@@ -45,17 +36,16 @@
       </nav>
     </div>
 
-    <!-- Editor -->
     <div class="p-4" id="file-editor">
       <%= form_with url: update_file_workspace_path(@workspace, name: @current_file), method: :patch, class: "space-y-4" do |f| %>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" data-controller="markdown-preview">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Edit: <%= @current_file %></label>
-            <textarea name="content" rows="20" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono text-sm"><%= @file_content %></textarea>
+            <textarea name="content" rows="20" data-markdown-preview-target="input" data-action="input->markdown-preview#render" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono text-sm"><%= @file_content %></textarea>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Preview</label>
-            <div class="prose prose-sm max-w-none p-4 border rounded-md bg-gray-50 h-[480px] overflow-y-auto">
+            <div data-markdown-preview-target="preview" class="prose prose-sm max-w-none p-4 border rounded-md bg-gray-50 h-[480px] overflow-y-auto">
               <%= render_markdown(@file_content || "") %>
             </div>
           </div>

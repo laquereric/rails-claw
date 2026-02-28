@@ -1,6 +1,8 @@
 <% content_for(:title) { "New Agent - Rails-Claw" } %>
 
 <div class="max-w-lg mx-auto">
-  <h1 class="text-2xl font-bold text-gray-900 mb-6">New Agent</h1>
-  <%= render "form", agent: @agent, workspace: @workspace %>
+  <%= render PageHeaderComponent.new(title: "New Agent") %>
+  <div class="mt-6">
+    <%= render "form", agent: @agent, workspace: @workspace %>
+  </div>
 </div>

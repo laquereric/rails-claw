@@ -14,20 +14,12 @@
 
   <body class="h-full">
     <div class="min-h-full">
-      <%= render "shared/navbar" %>
+      <%= render NavbarComponent.new(current_path: request.path) %>
 
       <% if notice.present? || alert.present? %>
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-4">
-          <% if notice.present? %>
-            <div class="rounded-md bg-green-50 p-4 mb-2">
-              <p class="text-sm text-green-700"><%= notice %></p>
-            </div>
-          <% end %>
-          <% if alert.present? %>
-            <div class="rounded-md bg-red-50 p-4 mb-2">
-              <p class="text-sm text-red-700"><%= alert %></p>
-            </div>
-          <% end %>
+          <%= render FlashBannerComponent.new(type: :notice, message: notice) if notice.present? %>
+          <%= render FlashBannerComponent.new(type: :alert, message: alert) if alert.present? %>
         </div>
       <% end %>
 

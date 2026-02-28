@@ -1,0 +1,7 @@
+<% if button_to? %>
+  <%= button_to @label, @path, method: @method, class: css_classes, data: @data %>
+<% elsif @path %>
+  <%= link_to @label, @path, class: css_classes, data: @data %>
+<% else %>
+  <button type="submit" class="<%= css_classes %> cursor-pointer" data-controller="<%= @data[:controller] %>"><%= @label %></button>
+<% end %>

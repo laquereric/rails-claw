@@ -1,19 +1,17 @@
 <% content_for(:title) { "Deployments - Rails-Claw" } %>
 
 <div class="space-y-6">
-  <h1 class="text-2xl font-bold text-gray-900">Deployments</h1>
+  <%= render PageHeaderComponent.new(title: "Deployments") %>
 
-  <div class="bg-white shadow rounded-lg p-6">
-    <h2 class="text-lg font-medium text-gray-900 mb-4">Docker Status</h2>
+  <%= render CardComponent.new(title: "Docker Status") do %>
     <div class="flex items-center gap-2">
       <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium <%= @docker_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
         <%= @docker_available ? "Docker Available" : "Docker Not Found" %>
       </span>
     </div>
-  </div>
+  <% end %>
 
-  <div class="bg-white shadow rounded-lg p-6">
-    <h2 class="text-lg font-medium text-gray-900 mb-4">Deployment Options</h2>
+  <%= render CardComponent.new(title: "Deployment Options") do %>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div class="border rounded-lg p-4">
         <h3 class="font-medium text-gray-900">Docker Compose</h3>
@@ -26,5 +24,5 @@
         <code class="mt-2 block text-xs bg-gray-50 p-2 rounded">docker extension install rails-claw</code>
       </div>
     </div>
-  </div>
+  <% end %>
 </div>

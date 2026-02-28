@@ -1,0 +1,6 @@
+<div class="text-center py-12 bg-white rounded-lg shadow">
+  <p class="text-gray-500"><%= @message %></p>
+  <% if action? %>
+    <%= link_to @action_text, @action_path, class: "mt-2 inline-block text-indigo-600 hover:text-indigo-500" %>
+  <% end %>
+</div>

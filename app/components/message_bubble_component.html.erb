@@ -1,0 +1,14 @@
+<div class="flex gap-3 <%= flex_direction %>">
+  <div class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium text-white <%= avatar_color %>">
+    <%= avatar_letter %>
+  </div>
+  <div class="max-w-2xl rounded-lg p-3 text-sm <%= bubble_bg %>">
+    <p class="text-gray-900"><%= @message.content %></p>
+    <% if has_metadata? %>
+      <p class="mt-1 text-xs text-gray-400">
+        <% if @message.tokens_used %>tokens: <%= @message.tokens_used %><% end %>
+        <% if @message.latency_ms %> | latency: <%= @message.latency_ms %>ms<% end %>
+      </p>
+    <% end %>
+  </div>
+</div>

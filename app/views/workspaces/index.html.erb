@@ -1,36 +1,19 @@
 <% content_for(:title) { "Workspaces - Rails-Claw" } %>
 
 <div class="space-y-6">
-  <div class="flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-gray-900">Workspaces</h1>
-    <%= link_to "New Workspace", new_workspace_path, class: "inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500" %>
-  </div>
+  <%= render PageHeaderComponent.new(title: "Workspaces") do |header| %>
+    <% header.with_actions do %>
+      <%= render ButtonComponent.new(label: "New Workspace", path: new_workspace_path) %>
+    <% end %>
+  <% end %>
 
   <% if @workspaces.any? %>
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <% @workspaces.each do |workspace| %>
-        <%= link_to workspace_path(workspace), class: "block bg-white shadow rounded-lg p-6 hover:shadow-md transition-shadow" do %>
-          <div class="flex justify-between items-start">
-            <h3 class="text-lg font-medium text-gray-900"><%= workspace.name %></h3>
-            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-              <%= case workspace.status
-                  when 'running' then 'bg-green-100 text-green-800'
-                  when 'stopped' then 'bg-gray-100 text-gray-800'
-                  when 'error' then 'bg-red-100 text-red-800'
-                  else 'bg-gray-100 text-gray-800'
-                  end %>">
-              <%= workspace.status %>
-            </span>
-          </div>
-          <p class="mt-2 text-sm text-gray-500"><%= workspace.agents.count %> agents</p>
-          <p class="mt-1 text-xs text-gray-400">Created <%= time_ago_in_words(workspace.created_at) %> ago</p>
-        <% end %>
+        <%= render WorkspaceCardComponent.new(workspace: workspace) %>
       <% end %>
     </div>
   <% else %>
-    <div class="text-center py-12 bg-white rounded-lg shadow">
-      <p class="text-gray-500">No workspaces yet.</p>
-      <%= link_to "Create your first workspace", new_workspace_path, class: "mt-2 inline-block text-indigo-600 hover:text-indigo-500" %>
-    </div>
+    <%= render EmptyStateComponent.new(message: "No workspaces yet.", action_text: "Create your first workspace", action_path: new_workspace_path) %>
   <% end %>
 </div>
